@@ -133,10 +133,11 @@ class MarioGPTTrainer:
     ):
         device = accelerator.device
         total_train_loss = 0
-        indices = list(
-            torch.randint(low=0, high=len(train_dataset), size=(batch_size,)).long()
-        )
-
+        
+        indices = torch.randint(
+            low=0, high=len(train_dataset), size=(batch_size,)
+        ).tolist()
+        print('1111111111111', indices)
         batch = train_dataset[indices]
         b_input_ids = batch[0].view(batch_size, -1).to(device)
         b_labels = batch[0].view(batch_size, -1).to(device)
@@ -156,7 +157,7 @@ class MarioGPTTrainer:
         )
 
         with accelerator.accumulate(model):
-            model.zero_grad()
+            optimizer.zero_grad(set_to_none=True)
             outputs = model(
                 input_ids=b_input_ids.to(device),
                 labels=b_labels,
@@ -168,7 +169,7 @@ class MarioGPTTrainer:
             )
             loss = outputs.loss
 
-            batch_loss = loss.item()
+            batch_loss = float(loss.item())
             total_train_loss += batch_loss
 
             loss.backward()
@@ -176,14 +177,18 @@ class MarioGPTTrainer:
             scheduler.step()
         #behavior learning log
         with torch.no_grad():
-            beh_acc = (outputs.beh_logits.argmax(-1) == behavior_label).float().mean().item()
+            lm_loss = float(outputs.lm_loss.item()) if hasattr(outputs, "lm_loss") else batch_loss
+            beh_loss = None
+            if hasattr(outputs, "beh_loss") and outputs.beh_loss is not None:
+                beh_loss = float(outputs.beh_loss.item())
 
         grad_dict = {}
         for n, W in model.named_parameters():
             if W.grad is not None:
                 grad_dict["{}_grad".format(n)] = float(torch.sum(W.grad).item())
 
-        return total_train_loss / batch_size, grad_dict
+        # HF LM loss is already averaged; do NOT divide again by batch_size.
+        return total_train_loss, grad_dict, beh_acc, lm_loss, beh_loss
 
     def train(
         self,
@@ -211,7 +216,7 @@ class MarioGPTTrainer:
         model.train()
 
         for i in bar:
-            loss, grad_dict = self.train_iter(
+            loss, grad_dict, beh_acc, lm_loss, beh_loss = self.train_iter(
                 self.accelerator,
                 model,
                 self.train_dataset,
@@ -219,7 +224,13 @@ class MarioGPTTrainer:
                 lr_scheduler,
                 batch_size,
             )
-            logs = {"loss": loss, "last_lr": lr_scheduler.get_last_lr()[0]}
+            logs = {
+                "loss": loss,
+                "lm_loss": lm_loss,
+                "beh_acc": beh_acc,
+                "beh_loss": (beh_loss if beh_loss is not None else 0.0),
+                "last_lr": lr_scheduler.get_last_lr()[0],
+            }
             bar.set_description(f"{logs}")
             self.accelerator.log({**logs, **grad_dict}, step=i)
 

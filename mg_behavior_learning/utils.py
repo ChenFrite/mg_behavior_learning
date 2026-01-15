@@ -9,7 +9,23 @@ from PIL import Image
 pt = os.path.dirname(os.path.realpath(__file__))
 TILE_DIR = os.path.join(pt, "data", "tiles")
 
-
+def setup_fim_embeddings(mario_lm, dataset):
+    """
+    Compatibility helper.
+    test_train.py imports this function; provide a safe default behavior:
+      - resize token embeddings to match tokenizer size (if supported).
+    """
+    if mario_lm is None or dataset is None:
+        return
+    tok = getattr(dataset, "tokenizer", None) or getattr(mario_lm, "tokenizer", None)
+    lm = getattr(mario_lm, "lm", None)
+    if tok is None or lm is None:
+        return
+    try:
+        lm.resize_token_embeddings(len(tok))
+    except Exception:
+        pass
+    
 def trim_level(level):
     mod = level.shape[-1] % 14
     if mod > 0:

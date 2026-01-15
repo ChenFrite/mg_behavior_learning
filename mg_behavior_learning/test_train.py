@@ -11,7 +11,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from mg_behavior_learning import MarioDataset, MarioLM, TrainingConfig, MarioGPTTrainer
 from mg_behavior_learning.utils import setup_fim_embeddings, view_level, convert_level_to_png, join_list_of_list, characterize
-from test_train_prompter import evaluate_prompts
+#from test_train_prompter import evaluate_prompts
 from transformers import AutoConfig, AutoModelWithLMHead
 
 import random
@@ -83,13 +83,13 @@ default_beh = "./Mario-GPT2-700-context-length/behavior_labels.pt"
 config = TrainingConfig(
     save_iteration=args.save_iteration,
     eval_iteration=args.eval_iteration,
-    save_prefix=args.save_prefix,
+    #save_prefix=args.save_prefix,
     total_steps=args.total_train_steps,
     batch_size=4,
-    train_mode_phase_full=args.train_mode_phase_full,
-    train_mode_expert = args.train_mode_expert,
-    collapse_mode = args.expert_collapse_mode,
-    masked_loss_mode = args.expert_masked_loss_mode,
+    #train_mode_phase_full=args.train_mode_phase_full,
+    #train_mode_expert = args.train_mode_expert,
+    #collapse_mode = args.expert_collapse_mode,
+    #masked_loss_mode = args.expert_masked_loss_mode,
 
     #behavior learning
     lambda_beh=args.lambda_beh,
@@ -99,7 +99,7 @@ config = TrainingConfig(
 
 # Create directory and copy saved model
 train_checkpoint_path = config.output_dir
-backup_checkpoint_path = config.output_dir + '_' + str(config.save_prefix)
+backup_checkpoint_path = config.output_dir # + '_' + str(config.save_prefix)
 
 print(f'***** Training MarioGPT with checkpoint path: {train_checkpoint_path} *****')
 print(f'***** Backup checkpoint path: {backup_checkpoint_path} *****')
@@ -121,22 +121,14 @@ mario_lm = mario_lm.to(device)
 """### Load Dataset (Optional)"""
 dataset = MarioDataset(
     mario_lm.tokenizer,
-    behavior_labels_path="./Mario-GPT2-700-context-length/behavior_labels.pt",
+    behavior_labels_path=config.behavior_labels_path,
 )
 setup_fim_embeddings(mario_lm, dataset)
 
 """### Setup training"""
 trainer = MarioGPTTrainer(mario_lm, dataset, config=config)
 
-# 測試token IDs獲取
-print("管道token IDs:", trainer.expert_cfg.pipe_token_ids)
-print("敵人token IDs:", trainer.expert_cfg.enemy_token_ids) 
-print("金幣token IDs:", trainer.expert_cfg.coin_token_ids)
-print("磚塊token IDs:", trainer.expert_cfg.blockele_token_ids)
-print("背景字符ID:", trainer.expert_cfg.dash_token_id)
 # 測試專家配置
-print('22222222222222222')
-print(f'train_mode_phase_full={args.train_mode_phase_full}, train_mode_expert={config.train_mode_expert}')
 trainer.train()
 
 """### Backup trained models"""

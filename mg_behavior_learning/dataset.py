@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import List, Optional
 
 import numpy as np
+import os
 import torch
 from torch.utils.data import Dataset
 from transformers import AutoTokenizer, PreTrainedTokenizer, PreTrainedTokenizerFast
@@ -78,6 +79,8 @@ class MarioDataset(Dataset):
         self.height = height
 
         x, self.str_arr = self.convert_level_to_tensor(level_string.split("\n"))
+        # keep tokenized output for __str__ / debugging
+        self.x = x
         self.input_ids = x["input_ids"].squeeze()
         self.attention_masks = x["attention_mask"].squeeze()
         if remove_start_end_tokens:
@@ -89,6 +92,8 @@ class MarioDataset(Dataset):
         # --- behavior labels (Phase 1 single-label) ---
         self.behavior_labels = None
         if behavior_labels_path is not None:
+            if not os.path.exists(behavior_labels_path):
+                raise FileNotFoundError(f"behavior_labels_path not found: {behavior_labels_path}")
             labels = torch.load(behavior_labels_path)
             if not torch.is_tensor(labels):
                 raise TypeError("behavior_labels.pt must be a torch.Tensor saved by torch.save")
@@ -143,13 +148,6 @@ class MarioDataset(Dataset):
             return x, m
         y = self.behavior_labels[idx_list]
         return x, m, y
-
-    def __getitem7777__(self, idx):
-        if isinstance(idx, int):
-            indices = self.indices[idx]
-        else:
-            indices = torch.stack([self.indices[i] for i in idx])
-        return self.input_ids[indices], self.attention_masks[indices]
 
     def generate_indices(self):
         out = []

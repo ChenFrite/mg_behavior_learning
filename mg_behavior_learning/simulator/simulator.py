@@ -3,7 +3,7 @@ import subprocess
 import tempfile
 from typing import List, Optional
 
-from mario_gpt.utils import load_level, save_level
+from mg_behavior_learning.utils import load_level, save_level
 
 pt = os.path.dirname(os.path.realpath(__file__))
 IMAGE_PATH = os.path.join(pt, "img/")
