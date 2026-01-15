@@ -13,13 +13,13 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 
 
 setup(
-    name="mario-gpt",
+    name="mg_behavior_learning",
     version="0.1.3",
-    url="https://github.com/shyamsn97/mario-gpt",
-    license='MIT',
+    url="https://github.com/ChenFrite/mg_behavior_learning",
+    license='Apache 2.0',
 
-    author="Shyam Sudhakaran",
-    author_email="shyamsnair@protonmail.com",
+    author="LBCHEN",
+    author_email="LBCHEN2007@gmail.com",
 
     description="Generating Mario Levels with GPT2. Code for the paper: 'MarioGPT: Open-Ended Text2Level Generation through Large Language Models', https://arxiv.org/abs/2302.05981",
 
