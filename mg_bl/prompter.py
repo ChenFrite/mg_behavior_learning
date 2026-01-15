@@ -8,8 +8,8 @@ import torch
 from scipy import stats
 from transformers import pipeline
 
-from mario_gpt.dataset import MarioDataset
-from mario_gpt.utils import view_level
+from mg_behavior_learning.dataset import MarioDataset
+from mg_behavior_learning.utils import view_level
 
 STATISTICS = {
     "enemy": np.array([1.0, 3.0, 7.0]),

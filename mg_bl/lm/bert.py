@@ -13,7 +13,7 @@ from transformers import (
     RobertaTokenizer,
 )
 
-from mario_gpt.lm.base import BaseMarioLM
+from mg_behavior_learning.lm.base import BaseMarioLM
 
 PRETRAINED_MODEL_PATH = "shyamsn97/MarioBert-448-inpaint-context-length"
 

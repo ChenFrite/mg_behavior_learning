@@ -3,11 +3,12 @@ from typing import Optional, Union
 from transformers import PreTrainedModel, PreTrainedTokenizer
 
 # lm stuff
-from mario_gpt.lm.base import BaseMarioLM
-from mario_gpt.lm.bert import MarioBert
-from mario_gpt.lm.gpt import MarioGPT
-from mario_gpt.prompter import Prompter
+from mg_behavior_learning.lm.base import BaseMarioLM
+from mg_behavior_learning.lm.bert import MarioBert
+from mg_behavior_learning.lm.gpt import MarioGPT
+from mg_behavior_learning.prompter import Prompter
 
+from mg_behavior_learning.lm.behavior_head import BehaviorHeadCausalLM
 
 def MarioLM(
     lm: Optional[PreTrainedModel] = None,

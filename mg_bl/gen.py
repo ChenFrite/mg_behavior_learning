@@ -1,4 +1,4 @@
-from mario_gpt import MarioLM, SampleOutput
+from mg_behavior_learning.import MarioLM, SampleOutput
 
 # pretrained_model = shyamsn97/Mario-GPT2-700-context-length
 

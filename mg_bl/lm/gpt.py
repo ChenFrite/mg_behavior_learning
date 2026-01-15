@@ -13,9 +13,9 @@ from transformers import (
     PreTrainedTokenizer,
 )
 
-from mario_gpt.lm.base import BaseMarioLM
-from mario_gpt.prompter import Prompter
-from mario_gpt.sampler import GPTSampler, SampleOutput
+from mg_behavior_learning.lm.base import BaseMarioLM
+from mg_behavior_learning.prompter import Prompter
+from mg_behavior_learning.sampler import GPTSampler, SampleOutput
 
 PRETRAINED_MODEL_PATH = "shyamsn97/Mario-GPT2-700-context-length"
 

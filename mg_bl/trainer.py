@@ -15,8 +15,9 @@ from torch.utils.data import Dataset
 from tqdm import tqdm
 from transformers import AdamW, PreTrainedModel, get_linear_schedule_with_warmup
 
-from mario_gpt.dataset import MarioDataset
-from mario_gpt.lm import BaseMarioLM, MarioLM
+from mg_behavior_learning.dataset import MarioDataset
+from mg_behavior_learning.lm import BaseMarioLM, MarioLM
+from mg_behavior_learning.lm.behavior_head import BehaviorHeadCausalLM
 
 
 @dataclass
@@ -36,6 +37,10 @@ class TrainingConfig:
     mask_proportion: float = 0.0
     eval_iteration: int = 1000
     save_iteration: int = 5000
+    #behavior learning
+    lambda_beh: float = 0.1
+    num_behaviors: int = 10
+    behavior_labels_path: str = ""
 
     def pretty_print(self):
         print("================== Training Config ==================")
@@ -62,6 +67,11 @@ class MarioGPTTrainer:
         if config is None:
             self.config = TrainingConfig()
 
+        self.mario_lm.lm = BehaviorHeadCausalLM(
+            self.mario_lm.lm,
+            num_behaviors=self.config.num_behaviors,
+            pooling="mean",
+        )
         self.optimizer = optimizer
         self.lr_scheduler = lr_scheduler
 
@@ -131,6 +141,8 @@ class MarioGPTTrainer:
         b_input_ids = batch[0].view(batch_size, -1).to(device)
         b_labels = batch[0].view(batch_size, -1).to(device)
         attention_masks = batch[1].to(device)
+        #behavior learning
+        behavior_label = batch[2].to(device)
 
         encoder_hidden_states = None
         str_levels = []
@@ -151,6 +163,8 @@ class MarioGPTTrainer:
                 attention_mask=attention_masks,
                 encoder_hidden_states=encoder_hidden_states,
                 token_type_ids=None,
+                behavior_label=behavior_label,
+                lambda_beh=self.config.lambda_beh,
             )
             loss = outputs.loss
 
@@ -160,6 +174,9 @@ class MarioGPTTrainer:
             loss.backward()
             optimizer.step()
             scheduler.step()
+        #behavior learning log
+        with torch.no_grad():
+            beh_acc = (outputs.beh_logits.argmax(-1) == behavior_label).float().mean().item()
 
         grad_dict = {}
         for n, W in model.named_parameters():

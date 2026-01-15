@@ -9,10 +9,10 @@ from PIL.Image import Image
 from tqdm import tqdm
 from transformers import LogitsProcessorList, TemperatureLogitsWarper, TopKLogitsWarper
 
-from mario_gpt.lm.base import BaseMarioLM
-from mario_gpt.prompter import Prompter
-from mario_gpt.simulator import Simulator
-from mario_gpt.utils import (
+from mg_behavior_learning.lm.base import BaseMarioLM
+from mg_behavior_learning.prompter import Prompter
+from mg_behavior_learning.simulator import Simulator
+from mg_behavior_learning.utils import (
     convert_level_to_png,
     load_level,
     save_level,

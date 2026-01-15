@@ -7,7 +7,7 @@ import torch
 from torch.utils.data import Dataset
 from transformers import AutoTokenizer, PreTrainedTokenizer, PreTrainedTokenizerFast
 
-from mario_gpt.level import FULL_LEVEL_STR_WITH_PATHS
+from mg_behavior_learning.level import FULL_LEVEL_STR_WITH_PATHS
 
 DEFAULT_MODEL = "distilgpt2"
 
@@ -41,6 +41,7 @@ class MarioDataset(Dataset):
         height: int = 14,
         remove_start_end_tokens: bool = False,
         sample_all_indices: bool = False,
+        behavior_labels_path: Optional[str] = None,
     ):
         if level_string is None:
             print(
@@ -85,6 +86,19 @@ class MarioDataset(Dataset):
 
         self.indices = self.generate_indices()
 
+        # --- behavior labels (Phase 1 single-label) ---
+        self.behavior_labels = None
+        if behavior_labels_path is not None:
+            labels = torch.load(behavior_labels_path)
+            if not torch.is_tensor(labels):
+                raise TypeError("behavior_labels.pt must be a torch.Tensor saved by torch.save")
+            labels = labels.long().view(-1)
+            if labels.numel() != len(self.indices):
+                raise ValueError(
+                    f"behavior_labels length mismatch: {labels.numel()} vs dataset length {len(self.indices)}"
+                )
+            self.behavior_labels = labels
+        #-----------------------
         self.unique_tokens, self.unique_counts = self.input_ids.unique(
             return_counts=True
         )
@@ -108,6 +122,29 @@ class MarioDataset(Dataset):
         return self.indices.shape[0]
 
     def __getitem__(self, idx):
+        if isinstance(idx, int):
+            indices = self.indices[idx]
+            x = self.input_ids[indices]
+            m = self.attention_masks[indices]
+            if self.behavior_labels is None:
+                return x, m
+            return x, m, self.behavior_labels[idx]
+
+        # idx can be list/np array/torch tensor
+        if torch.is_tensor(idx):
+            idx_list = idx.tolist()
+        else:
+            idx_list = list(idx)
+
+        indices = torch.stack([self.indices[i] for i in idx_list])
+        x = self.input_ids[indices]
+        m = self.attention_masks[indices]
+        if self.behavior_labels is None:
+            return x, m
+        y = self.behavior_labels[idx_list]
+        return x, m, y
+
+    def __getitem7777__(self, idx):
         if isinstance(idx, int):
             indices = self.indices[idx]
         else:

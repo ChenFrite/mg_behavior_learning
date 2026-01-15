@@ -1,8 +1,8 @@
-from mario_gpt.dataset import MarioDataset
-from mario_gpt.lm import MarioBert, MarioGPT, MarioLM
-from mario_gpt.prompter import Prompter
-from mario_gpt.sampler import GPTSampler, SampleOutput
-from mario_gpt.trainer import MarioGPTTrainer, TrainingConfig
+from mg_behavior_learning.dataset import MarioDataset
+from mg_behavior_learning.lm import MarioBert, MarioGPT, MarioLM
+from mg_behavior_learning.prompter import Prompter
+from mg_behavior_learning.sampler import GPTSampler, SampleOutput
+from mg_behavior_learning.trainer import MarioGPTTrainer, TrainingConfig
 
 __all__ = [
     "Prompter",
